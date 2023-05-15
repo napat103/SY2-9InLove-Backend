@@ -1,10 +1,8 @@
 package sit.project.projectv1.dtos;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
-import sit.project.projectv1.Enum;
+import sit.project.projectv1.enums.Display;
 
 import java.time.ZonedDateTime;
 
@@ -15,7 +13,7 @@ public class InputAnnouncementDTO {
     private String announcementDescription;
     private ZonedDateTime publishDate;
     private ZonedDateTime closeDate;
-    private Enum announcementDisplay;
+    private Display announcementDisplay;
     private Integer categoryId;
 }
 

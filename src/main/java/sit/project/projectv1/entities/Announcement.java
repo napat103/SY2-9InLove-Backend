@@ -3,7 +3,7 @@ package sit.project.projectv1.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import sit.project.projectv1.Enum;
+import sit.project.projectv1.enums.Display;
 
 import java.time.ZonedDateTime;
 
@@ -31,9 +31,17 @@ public class Announcement {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "announcementDisplay")
-    private Enum announcementDisplay;
+    private Display announcementDisplay;
 
     @ManyToOne
     @JoinColumn(name = "categoryId")
     private Category announcementCategory;
+
+    public ZonedDateTime getPublishDate() {
+        return publishDate;
+    }
+
+    public ZonedDateTime getCloseDate() {
+        return closeDate;
+    }
 }

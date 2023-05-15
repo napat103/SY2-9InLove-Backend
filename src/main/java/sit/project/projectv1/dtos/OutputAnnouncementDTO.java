@@ -1,11 +1,9 @@
 package sit.project.projectv1.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
-import sit.project.projectv1.Enum;
+import sit.project.projectv1.enums.Display;
 
 import java.time.ZonedDateTime;
 
@@ -17,7 +15,7 @@ public class OutputAnnouncementDTO {
     private String announcementDescription;
     private ZonedDateTime publishDate;
     private ZonedDateTime closeDate;
-    private Enum announcementDisplay;
+    private Display announcementDisplay;
 
     @JsonProperty("categoryId")
     private Integer announcementCategoryCategoryId;
