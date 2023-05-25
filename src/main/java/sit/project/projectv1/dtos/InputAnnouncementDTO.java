@@ -1,19 +1,40 @@
 package sit.project.projectv1.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import sit.project.projectv1.enums.Display;
+import sit.project.projectv1.exceptions.EnumSizeLimit;
 
 import java.time.ZonedDateTime;
 
 @Getter
 @Setter
 public class InputAnnouncementDTO {
+    @NotBlank
+    @Size(min = 1, max = 200)
     private String announcementTitle;
+
+    @NotBlank
+    @Size(min = 1, max = 10000)
     private String announcementDescription;
+
     private ZonedDateTime publishDate;
+
     private ZonedDateTime closeDate;
-    private Display announcementDisplay;
+
+    @EnumSizeLimit(targetClassType = Display.class, message = "must be either 'Y' or 'N'")
+    private String announcementDisplay;
+    public Display getAnnouncementDisplay() {
+        if (announcementDisplay == null) {
+            return Display.N;
+        }
+        return Display.valueOf(announcementDisplay);
+    }
+
+    @NotNull
     private Integer categoryId;
 }
 

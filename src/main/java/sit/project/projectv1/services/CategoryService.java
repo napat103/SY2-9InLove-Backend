@@ -20,6 +20,6 @@ public class CategoryService {
 
     public Category getCategoryById(Integer categoryId) {
         return categoryRepository.findById(categoryId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, categoryId + " does not exist!!!"));
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"categoryId", new Throwable("does not exists")));
     }
 }

@@ -18,12 +18,9 @@ import java.util.stream.Collectors;
 public class AnnouncementService {
     @Autowired
     private AnnouncementRepository announcementRepository;
-
-    public List<Announcement> getAllAnnouncement() {
-        List<Announcement> announcementList = announcementRepository.findAll();
-        announcementList.sort((a, b) -> b.getId() - a.getId());
-        return announcementList;
-    }
+    @Autowired
+    private CategoryService categoryService;
+    ZonedDateTime now = ZonedDateTime.now();
 
     public Announcement getAnnouncementById(Integer announcementId) {
         return announcementRepository.findById(announcementId).orElseThrow(
@@ -54,43 +51,62 @@ public class AnnouncementService {
         return announcementRepository.saveAndFlush(ann);
     }
 
-    public List<Announcement> getAnnouncementList(Mode mode) {
-        List<Announcement> announcementList = announcementRepository.findAll().stream()
-                .filter(a -> a.getAnnouncementDisplay() == Display.Y)
-                .collect(Collectors.toList());
+    public List<Announcement> getAnnouncementList(Mode mode, Integer categoryId) {
+        List<Announcement> announcementListAdmin;
+        List<Announcement> announcementList;
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
 
-        List<Announcement> announcementListAdmin = announcementRepository.findAll();
-        announcementListAdmin.sort(byIdDescending);
+        if (categoryId.equals(0)) {
+                announcementList = announcementRepository.findAll().stream()
+                        .filter(a -> a.getAnnouncementDisplay() == Display.Y)
+                        .collect(Collectors.toList());
+        } else {
+                announcementList = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId)).stream()
+                        .filter(a -> a.getAnnouncementDisplay() == Display.Y)
+                        .collect(Collectors.toList());
+        }
 
         if (mode == Mode.active) {
             List<Announcement> announcementActive = new ArrayList<>();
-            checkDateActive(announcementList, announcementActive);
+            checkActiveDate(announcementList, announcementActive);
             announcementActive.sort(byIdDescending);
             return announcementActive;
         } else if (mode == Mode.close) {
             List<Announcement> announcementClose = new ArrayList<>();
-            checkDateClose(announcementList, announcementClose);
+            checkCloseDate(announcementList, announcementClose);
             announcementClose.sort(byIdDescending);
             return announcementClose;
         }
 
+        // Admin mode
+        if (categoryId.equals(0)) {
+            announcementListAdmin = announcementRepository.findAll();
+        } else {
+            announcementListAdmin = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId));
+        }
+        announcementListAdmin.sort(byIdDescending);
         return announcementListAdmin;
     }
 
-    public Page<Announcement> getAnnouncementPage(int page, int size, Mode mode) {
-        List<Announcement> announcementList = announcementRepository.findAll().stream()
-                .filter(a -> a.getAnnouncementDisplay() == Display.Y)
-                .collect(Collectors.toList());
+    public Page<Announcement> getAnnouncementPage(int page, int size, Mode mode, Integer categoryId) {
+        List<Announcement> announcementList;
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
-
         Sort sort = Sort.by("id").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-        Page<Announcement> announcementPageAdmin = announcementRepository.findAll(pageRequest);
+
+        if (categoryId.equals(0)) {
+            announcementList = announcementRepository.findAll().stream()
+                    .filter(a -> a.getAnnouncementDisplay() == Display.Y)
+                    .collect(Collectors.toList());
+        } else {
+            announcementList = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId)).stream()
+                    .filter(a -> a.getAnnouncementDisplay() == Display.Y)
+                    .collect(Collectors.toList());
+        }
 
         if (mode == Mode.active) {
             List<Announcement> announcementActive = new ArrayList<>();
-            checkDateActive(announcementList, announcementActive);
+            checkActiveDate(announcementList, announcementActive);
             announcementActive.sort(byIdDescending);
             int start = (int) pageRequest.getOffset();
             if (start > announcementActive.size()) {
@@ -100,7 +116,7 @@ public class AnnouncementService {
             return new PageImpl<>(announcementActive.subList(start, end), pageRequest, announcementActive.size());
         } else if (mode == Mode.close) {
             List<Announcement> announcementClose = new ArrayList<>();
-            checkDateClose(announcementList, announcementClose);
+            checkCloseDate(announcementList, announcementClose);
             announcementClose.sort(byIdDescending);
             int start = (int) pageRequest.getOffset();
             if (start > announcementClose.size()) {
@@ -110,11 +126,14 @@ public class AnnouncementService {
             return new PageImpl<>(announcementClose.subList(start, end), pageRequest, announcementClose.size());
         }
 
-        return announcementPageAdmin;
+        // Admin mode
+        if (categoryId.equals(0)) {
+            return announcementRepository.findAll(pageRequest);
+        }
+        return announcementRepository.findAllByAnnouncementCategory(pageRequest, categoryService.getCategoryById(categoryId));
     }
 
-    public void checkDateActive(List<Announcement> announcementList, List<Announcement> announcementActive) {
-        ZonedDateTime now = ZonedDateTime.now();
+    public void checkActiveDate(List<Announcement> announcementList, List<Announcement> announcementActive) {
         announcementList.forEach(announcement -> {
             if (announcement.getPublishDate() == null && announcement.getCloseDate() == null) {
                 announcementActive.add(announcement);
@@ -124,7 +143,7 @@ public class AnnouncementService {
                 }
             } else if (announcement.getPublishDate() != null && announcement.getCloseDate() != null) {
                 if ((now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) &&
-                now.compareTo(announcement.getCloseDate()) < 0) {
+                        now.compareTo(announcement.getCloseDate()) < 0) {
                     announcementActive.add(announcement);
                 }
             } else if (announcement.getPublishDate() == null && announcement.getCloseDate() != null) {
@@ -135,8 +154,7 @@ public class AnnouncementService {
         });
     }
 
-    public void checkDateClose(List<Announcement> announcementList, List<Announcement> announcementClose) {
-        ZonedDateTime now = ZonedDateTime.now();
+    public void checkCloseDate(List<Announcement> announcementList, List<Announcement> announcementClose) {
         announcementList.forEach(announcement -> {
             if (announcement.getCloseDate() != null) {
                 if ((now.compareTo(announcement.getCloseDate()) > 0 || now.compareTo(announcement.getCloseDate()) == 0)) {

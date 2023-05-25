@@ -1,6 +1,6 @@
 package sit.project.projectv1.controllers;
 
-import lombok.Getter;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,19 +28,24 @@ public class AnnouncementController {
     @Autowired
     private ListMapper listMapper;
 
-//    @GetMapping
-//    public List<Announcement> getAllAnnouncement() {
-//        return announcementService.getAllAnnouncement();
-//    }
+    @GetMapping
+    public List<AnnouncementDTO> getAnnouncementList(@RequestParam(defaultValue = "admin") Mode mode,
+                                                     @RequestParam(defaultValue = "0") int category) {
+        List<Announcement> announcementList = announcementService.getAnnouncementList(mode, category);
+        List<AnnouncementDTO> announcementDTOList = announcementList.stream()
+                .map(announcement -> modelMapper.map(announcement, AnnouncementDTO.class))
+                .collect(Collectors.toList());
+        return announcementDTOList;
+    }
 
-//    @GetMapping
-//    public List<AnnouncementDTO> getAllAnnouncementDTO() {
-//        List<Announcement> announcementList = announcementService.getAllAnnouncement();
-//        List<AnnouncementDTO> announcementDTOS = announcementList.stream()
-//                .map(announcement -> modelMapper.map(announcement, AnnouncementDTO.class))
-//                .collect(Collectors.toList());
-//        return announcementDTOS;
-//    }
+    @GetMapping("/pages")
+    public PageDTO<AnnouncementDTO> getAnnouncementPageDTO(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "5") int size,
+                                                           @RequestParam(defaultValue = "admin") Mode mode,
+                                                           @RequestParam(defaultValue = "0") int category) {
+        Page<Announcement> announcementPage = announcementService.getAnnouncementPage(page, size, mode, category);
+        return listMapper.toPageDTO(announcementPage, AnnouncementDTO.class, modelMapper);
+    }
 
     @GetMapping("/{announcementId}")
     public AnnouncementDetailDTO getAnnouncementById(@PathVariable Integer announcementId) {
@@ -58,7 +63,7 @@ public class AnnouncementController {
     }
 
     @PostMapping
-    public OutputAnnouncementDTO createAnnouncement(@RequestBody InputAnnouncementDTO announcementDTO) {
+    public OutputAnnouncementDTO createAnnouncement(@Valid @RequestBody InputAnnouncementDTO announcementDTO) {
         Announcement announcement = modelMapper.map(announcementDTO, Announcement.class);
         announcement.setId(null);
         announcement.setAnnouncementCategory(categoryService.getCategoryById(announcementDTO.getCategoryId()));
@@ -67,28 +72,11 @@ public class AnnouncementController {
     }
 
     @PutMapping("/{announcementId}")
-    public OutputAnnouncementDTO updateAnnouncement(@PathVariable Integer announcementId, @RequestBody InputAnnouncementDTO announcementDTO) {
+    public OutputAnnouncementDTO updateAnnouncement(@PathVariable Integer announcementId, @Valid @RequestBody InputAnnouncementDTO announcementDTO) {
         Announcement announcement = modelMapper.map(announcementDTO, Announcement.class);
         announcement.setId(announcementId);
         announcement.setAnnouncementCategory(categoryService.getCategoryById(announcementDTO.getCategoryId()));
         announcementService.updateAnnouncement(announcementId, announcement);
         return modelMapper.map(announcement, OutputAnnouncementDTO.class);
-    }
-
-    @GetMapping
-    public List<AnnouncementDTO> getAnnouncementList(@RequestParam(defaultValue = "admin") Mode mode) {
-        List<Announcement> announcementList = announcementService.getAnnouncementList(mode);
-        List<AnnouncementDTO> announcementDTOList = announcementList.stream()
-                .map(announcement -> modelMapper.map(announcement, AnnouncementDTO.class))
-                .collect(Collectors.toList());
-        return announcementDTOList;
-    }
-
-    @GetMapping("/pages")
-    public PageDTO<AnnouncementDTO> getAnnouncementPageDTO(@RequestParam(defaultValue = "0") int page,
-                                                               @RequestParam(defaultValue = "5") int size,
-                                                               @RequestParam(defaultValue = "admin") Mode mode) {
-        Page<Announcement> announcementPage = announcementService.getAnnouncementPage(page, size, mode);
-        return listMapper.toPageDTO(announcementPage, AnnouncementDTO.class, modelMapper);
     }
 }
