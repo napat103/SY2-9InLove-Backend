@@ -20,6 +20,6 @@ public class EnumSizeLimitValidator implements ConstraintValidator<EnumSizeLimit
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return allowedValues.contains(value);
+        return value == null ? true : allowedValues.contains(value);
     }
 }
