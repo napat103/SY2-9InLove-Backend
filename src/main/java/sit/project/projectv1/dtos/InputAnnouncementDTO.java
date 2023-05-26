@@ -28,10 +28,7 @@ public class InputAnnouncementDTO {
     @EnumSizeLimit(targetClassType = Display.class, message = "must be either 'Y' or 'N'")
     private String announcementDisplay;
     public Display getAnnouncementDisplay() {
-        if (announcementDisplay == null) {
-            return Display.N;
-        }
-        return Display.valueOf(announcementDisplay);
+        return  announcementDisplay == null ? Display.N : Display.valueOf(announcementDisplay);
     }
 
     @NotNull
