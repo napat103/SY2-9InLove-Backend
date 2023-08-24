@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.project.projectv1.entities.Announcement;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.enums.Display;
+import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.repositories.AnnouncementRepository;
 
 import java.time.ZonedDateTime;
@@ -24,14 +25,14 @@ public class AnnouncementService {
 
     public Announcement getAnnouncementById(Integer announcementId) {
         return announcementRepository.findById(announcementId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This announcement does not exist!!!"));
+                () -> new ItemNotFoundException("This announcement does not exist!!!"));
     }
 
     public void deleteAnnouncementById(Integer announcementId) {
         if (announcementRepository.existsById(announcementId)) {
             announcementRepository.deleteById(announcementId);
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This announcement does not exist!!!");
+            throw new ItemNotFoundException("This announcement does not exist!!!");
         }
     }
 
@@ -41,7 +42,7 @@ public class AnnouncementService {
 
     public Announcement updateAnnouncement(Integer announcementId, Announcement announcement) {
         Announcement ann = announcementRepository.findById(announcementId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This announcement does not exist!!!"));
+                () -> new ItemNotFoundException("This announcement does not exist!!!"));
         ann.setAnnouncementTitle(announcement.getAnnouncementTitle());
         ann.setAnnouncementDescription(announcement.getAnnouncementDescription());
         ann.setPublishDate(announcement.getPublishDate());
@@ -67,15 +68,13 @@ public class AnnouncementService {
         }
 
         if (mode == Mode.active) {
-            List<Announcement> announcementActive = new ArrayList<>();
-            checkActiveDate(announcementList, announcementActive);
-            announcementActive.sort(byIdDescending);
-            return announcementActive;
+            List<Announcement> announcementActiveList = checkActiveDate(announcementList);
+            announcementActiveList.sort(byIdDescending);
+            return announcementActiveList;
         } else if (mode == Mode.close) {
-            List<Announcement> announcementClose = new ArrayList<>();
-            checkCloseDate(announcementList, announcementClose);
-            announcementClose.sort(byIdDescending);
-            return announcementClose;
+            List<Announcement> announcementCloseList = checkCloseDate(announcementList);
+            announcementCloseList.sort(byIdDescending);
+            return announcementCloseList;
         }
 
         // Admin mode
@@ -105,25 +104,23 @@ public class AnnouncementService {
         }
 
         if (mode == Mode.active) {
-            List<Announcement> announcementActive = new ArrayList<>();
-            checkActiveDate(announcementList, announcementActive);
-            announcementActive.sort(byIdDescending);
+            List<Announcement> announcementActiveList = checkActiveDate(announcementList);
+            announcementActiveList.sort(byIdDescending);
             int start = (int) pageRequest.getOffset();
-            if (start > announcementActive.size()) {
-                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementActive.size());
+            if (start > announcementActiveList.size()) {
+                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementActiveList.size());
             }
-            int end = Math.min((start + pageRequest.getPageSize()), announcementActive.size());
-            return new PageImpl<>(announcementActive.subList(start, end), pageRequest, announcementActive.size());
+            int end = Math.min((start + pageRequest.getPageSize()), announcementActiveList.size());
+            return new PageImpl<>(announcementActiveList.subList(start, end), pageRequest, announcementActiveList.size());
         } else if (mode == Mode.close) {
-            List<Announcement> announcementClose = new ArrayList<>();
-            checkCloseDate(announcementList, announcementClose);
-            announcementClose.sort(byIdDescending);
+            List<Announcement> announcementCloseList = checkCloseDate(announcementList);
+            announcementCloseList.sort(byIdDescending);
             int start = (int) pageRequest.getOffset();
-            if (start > announcementClose.size()) {
-                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementClose.size());
+            if (start > announcementCloseList.size()) {
+                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementCloseList.size());
             }
-            int end = Math.min((start + pageRequest.getPageSize()), announcementClose.size());
-            return new PageImpl<>(announcementClose.subList(start, end), pageRequest, announcementClose.size());
+            int end = Math.min((start + pageRequest.getPageSize()), announcementCloseList.size());
+            return new PageImpl<>(announcementCloseList.subList(start, end), pageRequest, announcementCloseList.size());
         }
 
         // Admin mode
@@ -133,34 +130,38 @@ public class AnnouncementService {
         return announcementRepository.findAllByAnnouncementCategory(pageRequest, categoryService.getCategoryById(categoryId));
     }
 
-    public void checkActiveDate(List<Announcement> announcementList, List<Announcement> announcementActive) {
+    public List<Announcement> checkActiveDate(List<Announcement> announcementList) {
+        List<Announcement> announcementActiveList = new ArrayList<>();
         announcementList.forEach(announcement -> {
             if (announcement.getPublishDate() == null && announcement.getCloseDate() == null) {
-                announcementActive.add(announcement);
+                announcementActiveList.add(announcement);
             } else if (announcement.getPublishDate() != null && announcement.getCloseDate() == null) {
                 if (now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) {
-                    announcementActive.add(announcement);
+                    announcementActiveList.add(announcement);
                 }
             } else if (announcement.getPublishDate() != null && announcement.getCloseDate() != null) {
                 if ((now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) &&
                         now.compareTo(announcement.getCloseDate()) < 0) {
-                    announcementActive.add(announcement);
+                    announcementActiveList.add(announcement);
                 }
             } else if (announcement.getPublishDate() == null && announcement.getCloseDate() != null) {
                 if (now.compareTo(announcement.getCloseDate()) < 0) {
-                    announcementActive.add(announcement);
+                    announcementActiveList.add(announcement);
                 }
             }
         });
+        return announcementActiveList;
     }
 
-    public void checkCloseDate(List<Announcement> announcementList, List<Announcement> announcementClose) {
+    public List<Announcement> checkCloseDate(List<Announcement> announcementList) {
+        List<Announcement> announcementCloseList = new ArrayList<>();
         announcementList.forEach(announcement -> {
             if (announcement.getCloseDate() != null) {
                 if ((now.compareTo(announcement.getCloseDate()) > 0 || now.compareTo(announcement.getCloseDate()) == 0)) {
-                    announcementClose.add(announcement);
+                    announcementCloseList.add(announcement);
                 }
             }
         });
+        return announcementCloseList;
     }
 }

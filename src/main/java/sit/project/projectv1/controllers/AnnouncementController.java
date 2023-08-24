@@ -52,7 +52,7 @@ public class AnnouncementController {
         return modelMapper.map(announcementService.getAnnouncementById(announcementId), AnnouncementDetailDTO.class);
     }
 
-    @GetMapping("update/{announcementId}")
+    @GetMapping("/update/{announcementId}")
     public OutputForUpdateAnnouncementDTO getAnnouncementForUpdate(@PathVariable Integer announcementId) {
         return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputForUpdateAnnouncementDTO.class);
     }
