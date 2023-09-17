@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import sit.project.projectv1.dtos.InputUserLoginDTO;
 import sit.project.projectv1.entities.User;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
+import sit.project.projectv1.exceptions.ResponseStatusValidationException;
 import sit.project.projectv1.repositories.UserRepository;
 
 import java.util.List;
@@ -63,7 +63,7 @@ public class UserService {
             if (argon2PasswordEncoder.matches(providedPassword, storedPassword) == true) {
                 return argon2PasswordEncoder.matches(providedPassword, storedPassword);
             }
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusValidationException(HttpStatus.UNAUTHORIZED, "password", "Password NOT Matched");
         }
         throw new ItemNotFoundException("This username does not exist!!!");
     }

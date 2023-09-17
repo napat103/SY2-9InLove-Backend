@@ -16,7 +16,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception, WebRequest webRequest) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Announcement attributes validation failed", webRequest.getDescription(false).substring(4));
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Announcement attributes validation failed",
+                webRequest.getDescription(false).substring(4));
         exception.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
@@ -24,6 +27,16 @@ public class GlobalExceptionHandler {
         });
         System.out.println(exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResponseStatusValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ResponseStatusValidationException exception, WebRequest webRequest) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                exception.getStatusCode().value(),
+                "Attributes validation failed!",
+                webRequest.getDescription(false));
+        errorResponse.addValidationError(exception.getFieldName(), exception.getReason());
+        return ResponseEntity.status(exception.getStatusCode()).body(errorResponse);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -60,6 +73,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public ResponseEntity<ErrorResponse> handlerUnauthorized(HttpClientErrorException.Unauthorized exception, WebRequest webRequest) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NON_AUTHORITATIVE_INFORMATION.value(), exception.getMessage(), webRequest.getDescription(false).substring(4));
+        errorResponse.addValidationError(webRequest.getDescription(false), exception.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 }
