@@ -1,5 +1,6 @@
 package sit.project.projectv1.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,10 @@ public class User {
 
     @Column(name = "username")
     private String username;
+
+    @Column(name = "password")
+    @JsonIgnore
+    private String password;
 
     @Column(name = "name")
     private String name;

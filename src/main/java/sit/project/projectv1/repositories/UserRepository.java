@@ -9,4 +9,23 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Integer>, EntityRepository<User> {
     @Query("SELECT u FROM User u order by u.role asc, u.username asc")
     List<User> findAllUser();
+
+//    @Query("SELECT u. FROM User u WHERE u.fieldName = :value")
+//    List<User> findAllByFieldName(@Param("fieldName") String fieldName, @Param("value") String value);
+
+//    @Query("SELECT u FROM User u")
+//    List<User> findAllByFieldName(@Param("fieldName") String fieldName);
+
+    @Query("SELECT u.username FROM User u")
+    List<String> findUserName();
+
+    @Query("SELECT u.name FROM User u")
+    List<String> findName();
+
+    @Query("SELECt u.email FROM User u")
+    List<String> findEmail();
+
+    User findByUsername(String username);
+
+    Boolean existsByUsername(String username);
 }

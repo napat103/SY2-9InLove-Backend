@@ -37,11 +37,11 @@ public class Announcement {
     @JoinColumn(name = "categoryId")
     private Category announcementCategory;
 
-    public ZonedDateTime getPublishDate() {
-        return publishDate;
-    }
-
-    public ZonedDateTime getCloseDate() {
-        return closeDate;
-    }
+//    public ZonedDateTime getPublishDate() {
+//        return publishDate;
+//    }
+//
+//    public ZonedDateTime getCloseDate() {
+//        return closeDate;
+//    }
 }

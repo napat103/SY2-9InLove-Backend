@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,6 +22,7 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errorResponse.addValidationError(fieldName, errorMessage);
         });
+        System.out.println(exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -52,6 +54,13 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage(), webRequest.getDescription(false).substring(4));
         errorResponse.addValidationError(webRequest.getDescription(false), exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpClientErrorException.Unauthorized.class)
+    @ResponseBody
+    public ResponseEntity<ErrorResponse> handlerUnauthorized(HttpClientErrorException.Unauthorized exception, WebRequest webRequest) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NON_AUTHORITATIVE_INFORMATION.value(), exception.getMessage(), webRequest.getDescription(false).substring(4));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 }
 

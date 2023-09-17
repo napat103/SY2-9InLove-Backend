@@ -15,6 +15,7 @@ public class EnumSizeLimitValidator implements ConstraintValidator<EnumSizeLimit
     public void initialize(EnumSizeLimit targetEnum) {
         Class<? extends Enum> enumSelected = targetEnum.targetClassType();
         allowedValues = (Set<String>) EnumSet.allOf(enumSelected).stream().map(e -> ((Enum<? extends Enum>) e).name()).collect(Collectors.toSet());
+        // bring value in Enum.class to create Set<String>
     }
 
     @Override

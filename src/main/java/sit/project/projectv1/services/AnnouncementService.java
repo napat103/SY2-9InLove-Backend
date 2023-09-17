@@ -56,7 +56,6 @@ public class AnnouncementService {
         List<Announcement> announcementListAdmin;
         List<Announcement> announcementList;
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
-
         if (categoryId.equals(0)) {
                 announcementList = announcementRepository.findAll().stream()
                         .filter(a -> a.getAnnouncementDisplay() == Display.Y)
@@ -66,7 +65,6 @@ public class AnnouncementService {
                         .filter(a -> a.getAnnouncementDisplay() == Display.Y)
                         .collect(Collectors.toList());
         }
-
         if (mode == Mode.active) {
             List<Announcement> announcementActiveList = checkActiveDate(announcementList);
             announcementActiveList.sort(byIdDescending);
@@ -76,7 +74,6 @@ public class AnnouncementService {
             announcementCloseList.sort(byIdDescending);
             return announcementCloseList;
         }
-
         // Admin mode
         if (categoryId.equals(0)) {
             announcementListAdmin = announcementRepository.findAll();
@@ -92,7 +89,6 @@ public class AnnouncementService {
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
         Sort sort = Sort.by("id").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-
         if (categoryId.equals(0)) {
             announcementList = announcementRepository.findAll().stream()
                     .filter(a -> a.getAnnouncementDisplay() == Display.Y)
@@ -102,7 +98,6 @@ public class AnnouncementService {
                     .filter(a -> a.getAnnouncementDisplay() == Display.Y)
                     .collect(Collectors.toList());
         }
-
         if (mode == Mode.active) {
             List<Announcement> announcementActiveList = checkActiveDate(announcementList);
             announcementActiveList.sort(byIdDescending);
@@ -122,7 +117,6 @@ public class AnnouncementService {
             int end = Math.min((start + pageRequest.getPageSize()), announcementCloseList.size());
             return new PageImpl<>(announcementCloseList.subList(start, end), pageRequest, announcementCloseList.size());
         }
-
         // Admin mode
         if (categoryId.equals(0)) {
             return announcementRepository.findAll(pageRequest);
