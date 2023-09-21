@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sit.project.projectv1.dtos.InputUserLoginDTO;
+import sit.project.projectv1.dtos.InputLoginUserDTO;
 import sit.project.projectv1.entities.User;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.exceptions.ResponseStatusValidationException;
@@ -24,8 +24,7 @@ public class UserService {
     }
 
     public User getUserById(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(
-                () -> new ItemNotFoundException("This user does not exits!!!"));
+        return userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("This user does not exits!!!"));
     }
 
     public User createUser(User user) {
@@ -37,13 +36,12 @@ public class UserService {
     }
 
     public User updateUser(Integer userId, User user) {
-        User user1 = userRepository.findById(userId).orElseThrow(
-                () -> new ItemNotFoundException("This user does not exits!!!"));
-        user1.setUsername(user.getUsername());
-        user1.setName(user.getName());
-        user1.setEmail(user.getEmail());
-        user1.setRole(user.getRole());
-        User saveUser = userRepository.saveAndFlush(user1);
+        User storedUser = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("This user does not exits!!!"));
+        storedUser.setUsername(user.getUsername());
+        storedUser.setName(user.getName());
+        storedUser.setEmail(user.getEmail());
+        storedUser.setRole(user.getRole());
+        User saveUser = userRepository.saveAndFlush(storedUser);
         userRepository.refresh(saveUser);
         return saveUser;
     }
@@ -56,10 +54,10 @@ public class UserService {
         }
     }
 
-    public boolean checkPassword(InputUserLoginDTO inputUserLoginDTO) {
-        if (userRepository.existsByUsername(inputUserLoginDTO.getUsername())) {
-            String providedPassword = inputUserLoginDTO.getPassword();
-            String storedPassword = userRepository.findByUsername(inputUserLoginDTO.getUsername()).getPassword();
+    public boolean checkPassword(InputLoginUserDTO inputLoginUserDTO) {
+        if (userRepository.existsByUsername(inputLoginUserDTO.getUsername())) {
+            String providedPassword = inputLoginUserDTO.getPassword();
+            String storedPassword = userRepository.findByUsername(inputLoginUserDTO.getUsername()).getPassword();
             if (argon2PasswordEncoder.matches(providedPassword, storedPassword) == true) {
                 return argon2PasswordEncoder.matches(providedPassword, storedPassword);
             }

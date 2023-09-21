@@ -53,8 +53,8 @@ public class AnnouncementController {
     }
 
     @GetMapping("/update/{announcementId}")
-    public OutputForUpdateAnnouncementDTO getAnnouncementForUpdate(@PathVariable Integer announcementId) {
-        return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputForUpdateAnnouncementDTO.class);
+    public OutputUpdateAnnouncementDTO getAnnouncementForUpdate(@PathVariable Integer announcementId) {
+        return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputUpdateAnnouncementDTO.class);
     }
 
     @DeleteMapping("/{announcementId}")

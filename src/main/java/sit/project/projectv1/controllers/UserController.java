@@ -4,8 +4,9 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import sit.project.projectv1.dtos.InputUserDTO;
-import sit.project.projectv1.dtos.InputUserLoginDTO;
+import sit.project.projectv1.dtos.InputCreateUserDTO;
+import sit.project.projectv1.dtos.InputLoginUserDTO;
+import sit.project.projectv1.dtos.InputUpdateUserDTO;
 import sit.project.projectv1.entities.User;
 import sit.project.projectv1.services.UserService;
 
@@ -31,15 +32,15 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@Valid @RequestBody InputUserDTO inputUserDTO) {
-        User user = modelMapper.map(inputUserDTO, User.class);
+    public User createUser(@Valid @RequestBody InputCreateUserDTO inputCreateUserDTO) {
+        User user = modelMapper.map(inputCreateUserDTO, User.class);
         user.setId(null);
         return userService.createUser(user);
     }
 
     @PutMapping("/{userId}")
-    public User updateUser(@PathVariable Integer userId, @Valid @RequestBody InputUserDTO inputUserDTO) {
-        User user = modelMapper.map(inputUserDTO, User.class);
+    public User updateUser(@PathVariable Integer userId, @Valid @RequestBody InputUpdateUserDTO inputUpdateUserDTO) {
+        User user = modelMapper.map(inputUpdateUserDTO, User.class);
         return userService.updateUser(userId, user);
     }
 
@@ -49,7 +50,7 @@ public class UserController {
     }
 
     @PostMapping("/match")
-    public boolean checkPassword(@Valid @RequestBody InputUserLoginDTO inputUserLoginDTO) {
-            return userService.checkPassword(inputUserLoginDTO);
+    public boolean checkPassword(@Valid @RequestBody InputLoginUserDTO inputLoginUserDTO) {
+            return userService.checkPassword(inputLoginUserDTO);
     }
 }
