@@ -19,7 +19,7 @@ public class InputCreateUserDTO {
     @NotBlank(message = "must not be blank")
     @Size(message = "size must be between 8 and 14", min = 8, max = 14)
     @Pattern(message = "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters",
-            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,14}$")
+            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-])")
     private String password;
 
     @NotBlank(message = "must not be blank")
