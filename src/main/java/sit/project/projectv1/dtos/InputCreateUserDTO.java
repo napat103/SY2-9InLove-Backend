@@ -14,12 +14,19 @@ public class InputCreateUserDTO {
     @Unique(fieldName = "username")
     private String username;
 
+<<<<<<< HEAD
 //    @NotBlank(message = "must not be blank")
 //    @Size(message = "size must be between 8 and 14", min = 8, max = 14)
 //    @Pattern(message = "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters",
 //            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>])")
 //            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,14}$")
     @Password(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,14}$")
+=======
+    @NotBlank(message = "must not be blank")
+    @Size(message = "size must be between 8 and 14", min = 8, max = 14)
+    @Pattern(message = "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters",
+            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-])")
+>>>>>>> d5335305c2e685d59bf54e8a28e135c92420dc14
     private String password;
 
     @NotBlank(message = "must not be blank")
