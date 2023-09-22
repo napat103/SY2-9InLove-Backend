@@ -18,9 +18,6 @@ public class PasswordValidator implements ConstraintValidator<Password, String> 
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-//        String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,14}$";
-//        Pattern p = Pattern.compile(regex);
-//        System.out.println(!p.matcher(value).matches());
         if (value == null || value.trim().isEmpty()) {
             throw new ResponseStatusValidationException(HttpStatus.BAD_REQUEST, "password", "must not be blank");
         }

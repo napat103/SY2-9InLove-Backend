@@ -4,6 +4,7 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
+import java.util.regex.Pattern;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
