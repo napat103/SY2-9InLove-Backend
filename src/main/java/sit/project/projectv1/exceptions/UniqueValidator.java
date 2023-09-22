@@ -30,9 +30,11 @@ public class UniqueValidator implements ConstraintValidator<Unique, String> {
             return true;
         }
 
+        // For update
         if (request.getMethod().equals("PUT")) {
             String path = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-            Integer userId = Integer.parseInt(path.substring(11));
+            String[] pathSplit = path.split("/");
+            Integer userId = Integer.parseInt(pathSplit[pathSplit.length-1]);
             User storedUser = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("This user does not exits!!!"));
             switch (fieldName) {
                 case "username":

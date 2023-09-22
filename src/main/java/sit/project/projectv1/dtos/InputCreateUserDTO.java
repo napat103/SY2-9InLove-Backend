@@ -1,11 +1,9 @@
 package sit.project.projectv1.dtos;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import sit.project.projectv1.exceptions.Password;
 import sit.project.projectv1.exceptions.Unique;
 
 @Getter
@@ -16,10 +14,12 @@ public class InputCreateUserDTO {
     @Unique(fieldName = "username")
     private String username;
 
-    @NotBlank(message = "must not be blank")
-    @Size(message = "size must be between 8 and 14", min = 8, max = 14)
-    @Pattern(message = "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters",
-            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,14}$")
+//    @NotBlank(message = "must not be blank")
+//    @Size(message = "size must be between 8 and 14", min = 8, max = 14)
+//    @Pattern(message = "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters",
+//            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>])")
+//            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,14}$")
+    @Password(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,14}$")
     private String password;
 
     @NotBlank(message = "must not be blank")
