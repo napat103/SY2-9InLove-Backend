@@ -11,9 +11,6 @@ import sit.project.projectv1.exceptions.Unique;
 @Getter
 @Setter
 public class InputUpdateUserDTO {
-    @JsonIgnore
-    private Integer id;
-
     @NotBlank(message = "must not be blank")
     @Size(min = 1, max = 45)
     @Unique(fieldName = "username")
@@ -31,13 +28,6 @@ public class InputUpdateUserDTO {
     private String email;
 
     private String role;
-
-    public Integer getId(Integer id) {
-        if (id == null) {
-            this.id = 0;
-        }
-        return id;
-    }
 
     public void setUsername(String username) {
         if (username != null) {
