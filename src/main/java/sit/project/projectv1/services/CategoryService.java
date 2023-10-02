@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.project.projectv1.entities.Category;
+import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.repositories.CategoryRepository;
 
 import java.util.List;
@@ -20,6 +21,6 @@ public class CategoryService {
 
     public Category getCategoryById(Integer categoryId) {
         return categoryRepository.findById(categoryId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"categoryId", new Throwable("does not exists")));
+                () -> new ItemNotFoundException("Not found this category"));
     }
 }

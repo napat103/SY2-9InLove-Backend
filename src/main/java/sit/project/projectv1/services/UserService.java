@@ -14,8 +14,10 @@ import java.util.List;
 
 @Service
 public class UserService {
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private Argon2PasswordEncoder argon2PasswordEncoder;
 
@@ -24,7 +26,8 @@ public class UserService {
     }
 
     public User getUserById(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("This user does not exits!!!"));
+        return userRepository.findById(userId).orElseThrow(
+                () -> new ItemNotFoundException("This user does not exits!!!"));
     }
 
     public User createUser(User user) {
@@ -36,7 +39,8 @@ public class UserService {
     }
 
     public User updateUser(Integer userId, User user) {
-        User storedUser = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("This user does not exits!!!"));
+        User storedUser = userRepository.findById(userId).orElseThrow(
+                () -> new ItemNotFoundException("This user does not exits!!!"));
         storedUser.setUsername(user.getUsername());
         storedUser.setName(user.getName());
         storedUser.setEmail(user.getEmail());
@@ -58,17 +62,11 @@ public class UserService {
         if (userRepository.existsByUsername(inputLoginUserDTO.getUsername())) {
             String providedPassword = inputLoginUserDTO.getPassword();
             String storedPassword = userRepository.findByUsername(inputLoginUserDTO.getUsername()).getPassword();
-            if (argon2PasswordEncoder.matches(providedPassword, storedPassword) == true) {
+            if (argon2PasswordEncoder.matches(providedPassword, storedPassword)) {
                 return argon2PasswordEncoder.matches(providedPassword, storedPassword);
             }
             throw new ResponseStatusValidationException(HttpStatus.UNAUTHORIZED, "password", "Password NOT Matched");
         }
         throw new ItemNotFoundException("This username does not exist!!!");
     }
-
-//    public void registerUser(User user) {
-//        String encodedPassword = passwordEncoder.encode(user.getPassword());
-//        user.setPassword(encodedPassword);
-//        // Save the user with the encoded password to the database
-//    }
 }

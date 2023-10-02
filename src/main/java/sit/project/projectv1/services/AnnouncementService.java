@@ -1,26 +1,31 @@
 package sit.project.projectv1.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import sit.project.projectv1.entities.Announcement;
-import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.enums.Display;
+import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.repositories.AnnouncementRepository;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class AnnouncementService {
     @Autowired
     private AnnouncementRepository announcementRepository;
+
     @Autowired
     private CategoryService categoryService;
+
     ZonedDateTime now = ZonedDateTime.now();
 
     public Announcement getAnnouncementById(Integer announcementId) {
@@ -56,6 +61,7 @@ public class AnnouncementService {
         List<Announcement> announcementListAdmin;
         List<Announcement> announcementList;
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
+
         if (categoryId.equals(0)) {
                 announcementList = announcementRepository.findAll().stream()
                         .filter(a -> a.getAnnouncementDisplay() == Display.Y)
@@ -65,6 +71,7 @@ public class AnnouncementService {
                         .filter(a -> a.getAnnouncementDisplay() == Display.Y)
                         .collect(Collectors.toList());
         }
+
         if (mode == Mode.active) {
             List<Announcement> announcementActiveList = checkActiveDate(announcementList);
             announcementActiveList.sort(byIdDescending);
@@ -74,6 +81,7 @@ public class AnnouncementService {
             announcementCloseList.sort(byIdDescending);
             return announcementCloseList;
         }
+
         // Admin mode
         if (categoryId.equals(0)) {
             announcementListAdmin = announcementRepository.findAll();
@@ -89,6 +97,7 @@ public class AnnouncementService {
         Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
         Sort sort = Sort.by("id").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
+
         if (categoryId.equals(0)) {
             announcementList = announcementRepository.findAll().stream()
                     .filter(a -> a.getAnnouncementDisplay() == Display.Y)
@@ -98,6 +107,7 @@ public class AnnouncementService {
                     .filter(a -> a.getAnnouncementDisplay() == Display.Y)
                     .collect(Collectors.toList());
         }
+
         if (mode == Mode.active) {
             List<Announcement> announcementActiveList = checkActiveDate(announcementList);
             announcementActiveList.sort(byIdDescending);
@@ -117,6 +127,7 @@ public class AnnouncementService {
             int end = Math.min((start + pageRequest.getPageSize()), announcementCloseList.size());
             return new PageImpl<>(announcementCloseList.subList(start, end), pageRequest, announcementCloseList.size());
         }
+
         // Admin mode
         if (categoryId.equals(0)) {
             return announcementRepository.findAll(pageRequest);

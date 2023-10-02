@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.http.HttpStatus;
 import java.util.regex.*;
 
-
 public class PasswordValidator implements ConstraintValidator<Password, String> {
 
     private Pattern regexpPattern;

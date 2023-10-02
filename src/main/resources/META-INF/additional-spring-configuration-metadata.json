@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "jwt.token-interval-in-minute",
+      "type": "java.lang.String",
+      "description": "Description for jwt.token-interval-in-minute."
+  }
+] }

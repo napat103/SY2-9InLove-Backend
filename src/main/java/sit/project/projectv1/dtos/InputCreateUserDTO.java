@@ -14,7 +14,7 @@ public class InputCreateUserDTO {
     @Unique(fieldName = "username")
     private String username;
 
-    @Password(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,14}$")
+    @Password
     private String password;
 
     @NotBlank(message = "must not be blank")
@@ -57,7 +57,7 @@ public class InputCreateUserDTO {
 
     public void setPassword(String password) {
         if (password != null) {
-            this.password = password.replaceAll("\\s", "");
+            this.password = password.replaceAll("\\s", ""); // delete all space
         }
     }
 }

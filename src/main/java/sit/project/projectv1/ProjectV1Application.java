@@ -2,12 +2,11 @@ package sit.project.projectv1;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import sit.project.projectv1.properties.JwtProperties;
 
 @SpringBootApplication
-//@EnableJpaRepositories(basePackages = "sit.project.projectv1.repositories")
-//@EntityScan(basePackages = "sit.project.projectv1.repositories")
-//@ComponentScan(basePackages = "sit.project.projectv1.repositories.impl")
+@EnableConfigurationProperties({JwtProperties.class})
 public class ProjectV1Application {
 
     public static void main(String[] args) {

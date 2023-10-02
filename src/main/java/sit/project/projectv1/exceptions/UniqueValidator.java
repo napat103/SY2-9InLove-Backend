@@ -11,7 +11,6 @@ import sit.project.projectv1.repositories.UserRepository;
 public class UniqueValidator implements ConstraintValidator<Unique, String> {
 
     private String fieldName;
-    private Integer id;
 
     @Autowired
     private UserRepository userRepository;

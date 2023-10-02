@@ -19,12 +19,16 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/announcements")
 public class AnnouncementController {
+
     @Autowired
     private AnnouncementService announcementService;
+
     @Autowired
     private CategoryService categoryService;
+
     @Autowired
     private ModelMapper modelMapper;
+
     @Autowired
     private ListMapper listMapper;
 
