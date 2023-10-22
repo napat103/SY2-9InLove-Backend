@@ -63,13 +63,20 @@ public class JwtTokenUtil implements Serializable {
     // 3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
     // compaction of the JWT to a URL-safe string
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+        return Jwts.builder()
+                .setClaims(claims)
+//                .claim("role", role) // Add role to payload
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getTokenIntervalInMinute() * 60 * 1000))
                 .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey()).compact();
     }
 
     private String doGenerateRefreshToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenIntervalInHour() * 60 * 1000))
                 .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey()).compact();
     }

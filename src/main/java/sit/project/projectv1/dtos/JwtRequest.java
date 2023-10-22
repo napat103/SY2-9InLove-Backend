@@ -1,5 +1,6 @@
 package sit.project.projectv1.dtos;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JwtRequest {
-    String username;
-    String password;
+
+    @NotBlank(message = "must not be blank")
+    private String username;
+
+    @NotBlank(message = "must not be blank")
+    private String password;
 }

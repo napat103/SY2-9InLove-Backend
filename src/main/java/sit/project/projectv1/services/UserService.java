@@ -2,12 +2,16 @@ package sit.project.projectv1.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sit.project.projectv1.dtos.InputLoginUserDTO;
-import sit.project.projectv1.entities.User;
+import sit.project.projectv1.dtos.JwtRequest;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.exceptions.ResponseStatusValidationException;
+import sit.project.projectv1.models.Announcement;
+import sit.project.projectv1.models.User;
+import sit.project.projectv1.repositories.AnnouncementRepository;
 import sit.project.projectv1.repositories.UserRepository;
 
 import java.util.List;
@@ -20,6 +24,9 @@ public class UserService {
 
     @Autowired
     private Argon2PasswordEncoder argon2PasswordEncoder;
+
+    @Autowired
+    private AnnouncementRepository announcementRepository;
 
     public List<User> getAllUser() {
         return userRepository.findAllUser();
@@ -50,18 +57,43 @@ public class UserService {
         return saveUser;
     }
 
-    public void deleteUser(Integer userId) {
-        if (userRepository.existsById(userId)) {
-            userRepository.deleteById(userId);
-        } else {
-            throw new ItemNotFoundException("This user does not exits!!!");
+    public User getUserFromToken(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String username = userDetails.getUsername();
+            User user = userRepository.findByUsername(username);
+            return user;
         }
+        // No token = guest
+        return null;
     }
 
-    public boolean checkPassword(InputLoginUserDTO inputLoginUserDTO) {
-        if (userRepository.existsByUsername(inputLoginUserDTO.getUsername())) {
-            String providedPassword = inputLoginUserDTO.getPassword();
-            String storedPassword = userRepository.findByUsername(inputLoginUserDTO.getUsername()).getPassword();
+    public void deleteUser(Integer userId, User user) {
+        User userToDelete = userRepository.findById(userId).orElseThrow(
+                () -> new ItemNotFoundException("This user does not exits!!!"));
+
+        // Retrieve announcements owned by the user being deleted
+        List<Announcement> announcementsToDelete = announcementRepository.findAllByAnnouncementOwner(userToDelete);
+
+        // Set the admin user as the new owner for these announcements
+        if (user == null) {
+            throw new ItemNotFoundException("Admin user not found!!!");
+        }
+        for (Announcement announcement : announcementsToDelete) {
+            announcement.setAnnouncementOwner(user);
+        }
+
+        // Save the updated announcements
+        announcementRepository.saveAll(announcementsToDelete);
+
+        // Delete the user
+        userRepository.deleteById(userId);
+    }
+
+    public boolean checkPassword(JwtRequest jwtRequest) {
+        if (userRepository.existsByUsername(jwtRequest.getUsername())) {
+            String providedPassword = jwtRequest.getPassword();
+            String storedPassword = userRepository.findByUsername(jwtRequest.getUsername()).getPassword();
             if (argon2PasswordEncoder.matches(providedPassword, storedPassword)) {
                 return argon2PasswordEncoder.matches(providedPassword, storedPassword);
             }

@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 @Getter
 @Setter
 public class InputAnnouncementDTO {
+
     @NotBlank
     @Size(min = 1, max = 200)
     private String announcementTitle;
@@ -28,12 +29,11 @@ public class InputAnnouncementDTO {
 
     @EnumSizeLimit(targetClassType = Display.class, message = "must be either 'Y' or 'N'")
     private String announcementDisplay;
-
-    @NotNull
-    private Integer categoryId;
-
     public Display getAnnouncementDisplay() {
         return  announcementDisplay == null ? Display.N : Display.valueOf(announcementDisplay);
     }
+
+    @NotNull
+    private Integer categoryId;
 }
 

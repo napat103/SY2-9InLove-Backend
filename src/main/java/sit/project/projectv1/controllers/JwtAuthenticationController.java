@@ -15,6 +15,7 @@ import sit.project.projectv1.config.JwtTokenUtil;
 import sit.project.projectv1.dtos.JwtRefreshResponse;
 import sit.project.projectv1.dtos.JwtRequest;
 import sit.project.projectv1.dtos.JwtResponse;
+import sit.project.projectv1.models.User;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.exceptions.ResponseStatusValidationException;
 import sit.project.projectv1.repositories.UserRepository;
@@ -43,9 +44,9 @@ public class JwtAuthenticationController {
             if (userDetailsService.checkPassword(request.getUsername(), request.getPassword())) {
                 authenticate(request.getUsername(), request.getPassword());
                 final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-                final String accessToken = jwtTokenUtil.generateToken(userDetails);
+                final String token = jwtTokenUtil.generateToken(userDetails);
                 final String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
-                return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                return ResponseEntity.ok(new JwtResponse(token, refreshToken));
             }
             throw new ResponseStatusValidationException(HttpStatus.UNAUTHORIZED, "password", "Password NOT Matched");
         }
@@ -57,6 +58,7 @@ public class JwtAuthenticationController {
         String username;
         String jwtToken;
         String requestTokenHeader = request.getHeader("Authorization");
+
         // check given token and assign username value
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
@@ -70,12 +72,13 @@ public class JwtAuthenticationController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT Token does not begin with Bearer String");
         }
+
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        final String accessToken = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtRefreshResponse(accessToken));
+        final String token = jwtTokenUtil.generateToken(userDetails);
+        return ResponseEntity.ok(new JwtRefreshResponse(token));
     }
 
-    // bring username and password check verify
+    // check username and password. Is it verify?
     private void authenticate(String username, String password) throws Exception {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));

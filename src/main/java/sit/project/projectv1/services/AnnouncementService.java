@@ -6,10 +6,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import sit.project.projectv1.entities.Announcement;
 import sit.project.projectv1.enums.Display;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
+import sit.project.projectv1.models.Announcement;
+import sit.project.projectv1.models.User;
 import sit.project.projectv1.repositories.AnnouncementRepository;
 
 import java.time.ZonedDateTime;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class AnnouncementService {
+
     @Autowired
     private AnnouncementRepository announcementRepository;
 
@@ -57,82 +59,92 @@ public class AnnouncementService {
         return announcementRepository.saveAndFlush(ann);
     }
 
-    public List<Announcement> getAnnouncementList(Mode mode, Integer categoryId) {
-        List<Announcement> announcementListAdmin;
+    public List<Announcement> getAnnouncementList(Mode mode, Integer categoryId, User user) {
         List<Announcement> announcementList;
-        Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
+        String role;
 
-        if (categoryId.equals(0)) {
-                announcementList = announcementRepository.findAll().stream()
-                        .filter(a -> a.getAnnouncementDisplay() == Display.Y)
-                        .collect(Collectors.toList());
+        if (user == null) {
+            role = "guest";
         } else {
-                announcementList = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId)).stream()
-                        .filter(a -> a.getAnnouncementDisplay() == Display.Y)
-                        .collect(Collectors.toList());
+            role = user.getRole().toString();
         }
 
-        if (mode == Mode.active) {
-            List<Announcement> announcementActiveList = checkActiveDate(announcementList);
-            announcementActiveList.sort(byIdDescending);
-            return announcementActiveList;
-        } else if (mode == Mode.close) {
-            List<Announcement> announcementCloseList = checkCloseDate(announcementList);
-            announcementCloseList.sort(byIdDescending);
-            return announcementCloseList;
-        }
+        if (role.equals("admin")) { // FindAll, Filter category, mode
+            announcementList = announcementRepository.findAll();
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return announcementList;
 
-        // Admin mode
-        if (categoryId.equals(0)) {
-            announcementListAdmin = announcementRepository.findAll();
-        } else {
-            announcementListAdmin = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId));
+        } else if (role.equals("announcer")) { // FindByOwner, Filter category, mode
+            announcementList = announcementRepository.findAllByAnnouncementOwner(user);
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return announcementList;
+
+        } else { // Guest role => FindByDisplay, Filter category, display, mode
+            announcementList = announcementRepository.findAllByAnnouncementDisplay(Display.Y);
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return announcementList;
         }
-        announcementListAdmin.sort(byIdDescending);
-        return announcementListAdmin;
     }
 
-    public Page<Announcement> getAnnouncementPage(int page, int size, Mode mode, Integer categoryId) {
+    public Page<Announcement> getAnnouncementPage(int page, int size, Mode mode, Integer categoryId, User user) {
         List<Announcement> announcementList;
-        Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
+        String role;
         Sort sort = Sort.by("id").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
-        if (categoryId.equals(0)) {
-            announcementList = announcementRepository.findAll().stream()
-                    .filter(a -> a.getAnnouncementDisplay() == Display.Y)
-                    .collect(Collectors.toList());
+        if (user == null) {
+            role = "guest";
         } else {
-            announcementList = announcementRepository.findAllByAnnouncementCategory(categoryService.getCategoryById(categoryId)).stream()
-                    .filter(a -> a.getAnnouncementDisplay() == Display.Y)
+            role = user.getRole().toString();
+        }
+
+        if (role.equals("admin")) { // FindAll, Filter category, mode
+            announcementList = announcementRepository.findAll();
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return changeListToPage(announcementList, pageRequest);
+
+        } else if (role.equals("announcer")) { // FindByOwner, Filter category, mode
+            announcementList = announcementRepository.findAllByAnnouncementOwner(user);
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return changeListToPage(announcementList, pageRequest);
+
+        } else { // Guest role, FindByDisplay, Filter category, mode
+            announcementList = announcementRepository.findAllByAnnouncementDisplay(Display.Y);
+            announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
+            return changeListToPage(announcementList, pageRequest);
+        }
+    }
+
+    public List<Announcement> filterCategoryAndMode(List<Announcement> announcementList, Integer categoryId, Mode mode) {
+        Comparator<Announcement> byIdDescending = Comparator.comparingInt(Announcement::getId).reversed();
+
+        if (!categoryId.equals(0)) {
+            announcementList = announcementList.stream()
+                    .filter(announcement -> announcement.getAnnouncementCategory() == categoryService.getCategoryById(categoryId))
                     .collect(Collectors.toList());
         }
 
         if (mode == Mode.active) {
-            List<Announcement> announcementActiveList = checkActiveDate(announcementList);
-            announcementActiveList.sort(byIdDescending);
-            int start = (int) pageRequest.getOffset();
-            if (start > announcementActiveList.size()) {
-                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementActiveList.size());
-            }
-            int end = Math.min((start + pageRequest.getPageSize()), announcementActiveList.size());
-            return new PageImpl<>(announcementActiveList.subList(start, end), pageRequest, announcementActiveList.size());
+            announcementList = checkActiveDate(announcementList);
+            announcementList.sort(byIdDescending);
+            return announcementList;
         } else if (mode == Mode.close) {
-            List<Announcement> announcementCloseList = checkCloseDate(announcementList);
-            announcementCloseList.sort(byIdDescending);
-            int start = (int) pageRequest.getOffset();
-            if (start > announcementCloseList.size()) {
-                return new PageImpl<>(new ArrayList<>(), pageRequest, announcementCloseList.size());
-            }
-            int end = Math.min((start + pageRequest.getPageSize()), announcementCloseList.size());
-            return new PageImpl<>(announcementCloseList.subList(start, end), pageRequest, announcementCloseList.size());
+            announcementList = checkCloseDate(announcementList);
+            announcementList.sort(byIdDescending);
+            return announcementList;
+        } else {
+            announcementList.sort(byIdDescending);
+            return announcementList;
         }
+    }
 
-        // Admin mode
-        if (categoryId.equals(0)) {
-            return announcementRepository.findAll(pageRequest);
+    public Page<Announcement> changeListToPage(List<Announcement> announcementList, PageRequest pageRequest) {
+        int start = (int) pageRequest.getOffset();
+        if (start > announcementList.size()) {
+            return new PageImpl<>(new ArrayList<>(), pageRequest, announcementList.size());
         }
-        return announcementRepository.findAllByAnnouncementCategory(pageRequest, categoryService.getCategoryById(categoryId));
+        int end = Math.min((start + pageRequest.getPageSize()), announcementList.size());
+        return new PageImpl<>(announcementList.subList(start, end), pageRequest, announcementList.size());
     }
 
     public List<Announcement> checkActiveDate(List<Announcement> announcementList) {

@@ -13,11 +13,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageDTO<T> {
+
     private List<T> content;
+
     private Boolean last;
+
     private Boolean first;
+
     private Integer totalPages;
+
     private Integer totalElements;
+
     private Integer size;
 
     @JsonIgnore
