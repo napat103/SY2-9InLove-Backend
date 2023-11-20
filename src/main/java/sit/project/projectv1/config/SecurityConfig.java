@@ -43,6 +43,9 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/token").permitAll()
+
+//                .requestMatchers("/api/**").permitAll()
+
                 .requestMatchers(HttpMethod.GET, "/api/announcements/**", "/api/announcements/{announcementId}").permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/api/announcements/**").hasAnyRole("admin", "announcer")

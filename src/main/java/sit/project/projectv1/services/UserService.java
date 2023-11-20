@@ -37,6 +37,10 @@ public class UserService {
                 () -> new ItemNotFoundException("This user does not exits!!!"));
     }
 
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     public User createUser(User user) {
         String hashedPassword = argon2PasswordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);

@@ -9,11 +9,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sit.project.projectv1.dtos.InputCreateUserDTO;
-import sit.project.projectv1.dtos.JwtRequest;
 import sit.project.projectv1.dtos.InputUpdateUserDTO;
+import sit.project.projectv1.dtos.JwtRequest;
 import sit.project.projectv1.enums.Role;
 import sit.project.projectv1.models.User;
-import sit.project.projectv1.repositories.UserRepository;
 import sit.project.projectv1.services.UserService;
 
 import java.util.List;
@@ -27,9 +26,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private ModelMapper modelMapper;

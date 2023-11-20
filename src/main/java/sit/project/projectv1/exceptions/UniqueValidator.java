@@ -34,6 +34,7 @@ public class UniqueValidator implements ConstraintValidator<Unique, String> {
             String path = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE); // "/api/users/userId"
             String[] pathSplit = path.split("/"); // [api, users, userId]
             Integer userId = Integer.parseInt(pathSplit[pathSplit.length-1]); // userId
+
             User storedUser = userRepository.findById(userId).orElseThrow(
                     () -> new ItemNotFoundException("This user does not exits!!!"));
 

@@ -38,7 +38,7 @@ public class Announcement {
     private Integer viewCount;
 
     @ManyToOne
-    @JoinColumn(name = "categoryId")
+    @JoinColumn(name = "categoryId", referencedColumnName = "categoryId")
     private Category announcementCategory;
 
     @ManyToOne

@@ -79,7 +79,7 @@ public class AnnouncementService {
             announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
             return announcementList;
 
-        } else { // Guest role => FindByDisplay, Filter category, display, mode
+        } else { // Guest role => FindByDisplay, Filter category, mode
             announcementList = announcementRepository.findAllByAnnouncementDisplay(Display.Y);
             announcementList = filterCategoryAndMode(announcementList, categoryId, mode);
             return announcementList;
@@ -132,7 +132,7 @@ public class AnnouncementService {
             announcementList = checkCloseDate(announcementList);
             announcementList.sort(byIdDescending);
             return announcementList;
-        } else {
+        } else { // Mode = admin
             announcementList.sort(byIdDescending);
             return announcementList;
         }

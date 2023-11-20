@@ -15,11 +15,11 @@ import sit.project.projectv1.config.JwtTokenUtil;
 import sit.project.projectv1.dtos.JwtRefreshResponse;
 import sit.project.projectv1.dtos.JwtRequest;
 import sit.project.projectv1.dtos.JwtResponse;
-import sit.project.projectv1.models.User;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.exceptions.ResponseStatusValidationException;
 import sit.project.projectv1.repositories.UserRepository;
 import sit.project.projectv1.services.JwtUserDetailsService;
+import sit.project.projectv1.services.UserService;
 
 @RestController
 @CrossOrigin
@@ -38,13 +38,16 @@ public class JwtAuthenticationController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest request) throws Exception {
         if (userRepository.existsByUsername(request.getUsername())) {
             if (userDetailsService.checkPassword(request.getUsername(), request.getPassword())) {
                 authenticate(request.getUsername(), request.getPassword());
                 final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-                final String token = jwtTokenUtil.generateToken(userDetails);
+                final String token = jwtTokenUtil.generateToken(userDetails, userService.getUserByUsername(request.getUsername()).getRole());
                 final String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
                 return ResponseEntity.ok(new JwtResponse(token, refreshToken));
             }
@@ -74,7 +77,7 @@ public class JwtAuthenticationController {
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        final String token = jwtTokenUtil.generateToken(userDetails);
+        final String token = jwtTokenUtil.generateToken(userDetails, userService.getUserByUsername(username).getRole());
         return ResponseEntity.ok(new JwtRefreshResponse(token));
     }
 

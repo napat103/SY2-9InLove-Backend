@@ -24,7 +24,7 @@ public class OutputUpdateAnnouncementDTO {
 
     @JsonIgnore
     private Category announcementCategory;
-    public Integer getCategoryID() {
+    public Integer getCategoryId() {
         return announcementCategory == null? null : announcementCategory.getCategoryId();
     }
 }

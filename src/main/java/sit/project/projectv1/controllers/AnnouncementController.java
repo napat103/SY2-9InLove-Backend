@@ -32,9 +32,6 @@ public class AnnouncementController {
     private AnnouncementService announcementService;
 
     @Autowired
-    private AnnouncementRepository announcementRepository;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -74,8 +71,7 @@ public class AnnouncementController {
 
     @GetMapping("/{announcementId}")
     public AnnouncementDetailDTO getAnnouncementById(@PathVariable Integer announcementId) {
-        Announcement storedAnnouncement = announcementRepository.findById(announcementId).orElseThrow(
-                () -> new ItemNotFoundException("This announcement does not exist!!!"));
+        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);
@@ -95,8 +91,7 @@ public class AnnouncementController {
 
     @DeleteMapping("/{announcementId}")
     public void deleteAnnouncementById(@PathVariable Integer announcementId) {
-        Announcement storedAnnouncement = announcementRepository.findById(announcementId).orElseThrow(
-                () -> new ItemNotFoundException("This announcement does not exist!!!"));
+        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);
@@ -123,8 +118,7 @@ public class AnnouncementController {
 
     @PutMapping("/{announcementId}")
     public OutputAnnouncementDTO updateAnnouncement(@PathVariable Integer announcementId, @Valid @RequestBody InputAnnouncementDTO announcementDTO) {
-        Announcement storedAnnouncement = announcementRepository.findById(announcementId).orElseThrow(
-                () -> new ItemNotFoundException("This announcement does not exist!!!"));
+        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);

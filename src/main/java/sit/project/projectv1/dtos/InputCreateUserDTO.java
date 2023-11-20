@@ -33,7 +33,7 @@ public class InputCreateUserDTO {
 
     public void setUsername(String username) {
         if (username != null) {
-            this.username = username.trim();
+            this.username = username.trim(); // delete first and last space
         }
     }
 
