@@ -40,6 +40,18 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
+    @GetMapping("/username")
+    @PreAuthorize("hasAnyRole('admin', 'announcer')")
+    public User getUserByUsername(@RequestParam String username) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserFromToken(authentication);
+
+        if (user == userService.getUserByUsername(username)) {
+            return userService.getUserByUsername(username);
+        }
+        throw new AccessDeniedException("Access denied!!!");
+    }
+
     @PostMapping
     public User createUser(@Valid @RequestBody InputCreateUserDTO inputCreateUserDTO) {
         User user = modelMapper.map(inputCreateUserDTO, User.class);
