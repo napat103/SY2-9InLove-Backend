@@ -14,6 +14,7 @@ public class UniqueValidator implements ConstraintValidator<Unique, String> {
 
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private HttpServletRequest request;
 
@@ -57,7 +58,7 @@ public class UniqueValidator implements ConstraintValidator<Unique, String> {
             }
         }
 
-        // For create (POST)
+        // For create
         switch (fieldName) {
             case "username":
                 return !userRepository.findUserName().contains(value);

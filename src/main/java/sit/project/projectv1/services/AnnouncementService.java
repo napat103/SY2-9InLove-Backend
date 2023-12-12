@@ -28,8 +28,6 @@ public class AnnouncementService {
     @Autowired
     private CategoryService categoryService;
 
-    ZonedDateTime now = ZonedDateTime.now();
-
     public Announcement getAnnouncementById(Integer announcementId) {
         return announcementRepository.findById(announcementId).orElseThrow(
                 () -> new ItemNotFoundException("This announcement does not exist!!!"));
@@ -125,11 +123,11 @@ public class AnnouncementService {
         }
 
         if (mode == Mode.active) {
-            announcementList = checkActiveDate(announcementList);
+            announcementList = getActiveDate(announcementList);
             announcementList.sort(byIdDescending);
             return announcementList;
         } else if (mode == Mode.close) {
-            announcementList = checkCloseDate(announcementList);
+            announcementList = getCloseDate(announcementList);
             announcementList.sort(byIdDescending);
             return announcementList;
         } else { // Mode = admin
@@ -147,8 +145,10 @@ public class AnnouncementService {
         return new PageImpl<>(announcementList.subList(start, end), pageRequest, announcementList.size());
     }
 
-    public List<Announcement> checkActiveDate(List<Announcement> announcementList) {
+    public List<Announcement> getActiveDate(List<Announcement> announcementList) {
         List<Announcement> announcementActiveList = new ArrayList<>();
+        ZonedDateTime now = ZonedDateTime.now();
+
         announcementList.forEach(announcement -> {
             if (announcement.getPublishDate() == null && announcement.getCloseDate() == null) {
                 announcementActiveList.add(announcement);
@@ -170,8 +170,10 @@ public class AnnouncementService {
         return announcementActiveList;
     }
 
-    public List<Announcement> checkCloseDate(List<Announcement> announcementList) {
+    public List<Announcement> getCloseDate(List<Announcement> announcementList) {
         List<Announcement> announcementCloseList = new ArrayList<>();
+        ZonedDateTime now = ZonedDateTime.now();
+
         announcementList.forEach(announcement -> {
             if (announcement.getCloseDate() != null) {
                 if ((now.compareTo(announcement.getCloseDate()) > 0 || now.compareTo(announcement.getCloseDate()) == 0)) {

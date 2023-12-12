@@ -1,6 +1,7 @@
 package sit.project.projectv1.config;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +46,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     System.out.println("Unable to get JWT Token");
                 } catch (ExpiredJwtException exception) {
                     System.out.println("JWT Token has expired");
+                } catch (SignatureException exception) {
+                    System.out.println("Signature is not valid");
                 }
             } else {
                 logger.warn("JWT Token does not begin with Bearer String");

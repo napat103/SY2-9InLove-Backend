@@ -9,14 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sit.project.projectv1.dtos.*;
+import sit.project.projectv1.enums.Display;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.enums.Role;
-import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.models.Announcement;
 import sit.project.projectv1.models.User;
-import sit.project.projectv1.repositories.AnnouncementRepository;
 import sit.project.projectv1.services.AnnouncementService;
 import sit.project.projectv1.services.CategoryService;
+import sit.project.projectv1.services.SubscriptionService;
 import sit.project.projectv1.services.UserService;
 import sit.project.projectv1.utils.ListMapper;
 
@@ -36,6 +36,9 @@ public class AnnouncementController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -112,7 +115,12 @@ public class AnnouncementController {
         announcement.setId(null);
         announcement.setAnnouncementCategory(categoryService.getCategoryById(announcementDTO.getCategoryId()));
         announcement.setAnnouncementOwner(user);
-        announcementService.createAnnouncement(announcement);
+
+        Announcement newAnnouncement = announcementService.createAnnouncement(announcement); // create and declare newAnnouncement
+        if (newAnnouncement.getAnnouncementDisplay() == Display.Y) {
+            subscriptionService.checkAnnouncementCategoryAndSendMail(newAnnouncement);
+        }
+
         return modelMapper.map(announcement, OutputAnnouncementDTO.class);
     }
 
@@ -128,10 +136,14 @@ public class AnnouncementController {
             announcement.setId(announcementId);
             announcement.setAnnouncementCategory(categoryService.getCategoryById(announcementDTO.getCategoryId()));
             announcement.setAnnouncementOwner(storedAnnouncement.getAnnouncementOwner());
-            announcementService.updateAnnouncement(announcementId, announcement);
+
+            Announcement newAnnouncement = announcementService.updateAnnouncement(announcementId, announcement); // update and declare newAnnouncement
+            if (newAnnouncement.getAnnouncementDisplay() == Display.Y) {
+                subscriptionService.checkAnnouncementCategoryAndSendMail(newAnnouncement);
+            }
+
             return modelMapper.map(announcement, OutputAnnouncementDTO.class);
         }
-
         throw new AccessDeniedException("Access denied!!!");
     }
 

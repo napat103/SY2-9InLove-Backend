@@ -12,6 +12,7 @@ import lombok.Setter;
 @Entity
 @Table(name ="category")
 public class Category {
+
     @Id
     @Column(name = "categoryId")
     private Integer categoryId;

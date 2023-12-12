@@ -10,6 +10,7 @@ import java.util.List;
 
 @Service
 public class CategoryService {
+
     @Autowired
     private CategoryRepository categoryRepository;
 
@@ -20,5 +21,24 @@ public class CategoryService {
     public Category getCategoryById(Integer categoryID) {
         return categoryRepository.findById(categoryID).orElseThrow(
                 () -> new ItemNotFoundException("Not found this category"));
+    }
+
+    public Category createCategory(Category category) {
+        return categoryRepository.saveAndFlush(category);
+    }
+
+    public Category updateCategory(Integer categoryId, Category category) {
+        Category storedCategory = categoryRepository.findById(categoryId).orElseThrow(
+                () -> new ItemNotFoundException("Not found this category"));
+        storedCategory.setCategoryName(category.getCategoryName());
+        return categoryRepository.saveAndFlush(storedCategory);
+    }
+
+    public void deleteCategory(Integer categoryId) {
+        if (categoryRepository.existsById(categoryId)) {
+            categoryRepository.deleteById(categoryId);
+        } else {
+            throw new ItemNotFoundException("Not found this category");
+        }
     }
 }

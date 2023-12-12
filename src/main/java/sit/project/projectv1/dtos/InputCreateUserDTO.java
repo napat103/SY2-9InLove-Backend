@@ -9,6 +9,7 @@ import sit.project.projectv1.exceptions.Unique;
 @Getter
 @Setter
 public class InputCreateUserDTO {
+
     @NotBlank(message = "must not be blank")
     @Size(min = 1, max = 45)
     @Unique(fieldName = "username")
