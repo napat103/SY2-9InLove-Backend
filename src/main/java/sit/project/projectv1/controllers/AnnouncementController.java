@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sit.project.projectv1.dtos.*;
+import sit.project.projectv1.enums.Display;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.enums.Role;
 import sit.project.projectv1.models.Announcement;
@@ -42,7 +43,6 @@ public class AnnouncementController {
     @Autowired
     private ListMapper listMapper;
 
-
     @GetMapping
     public List<AnnouncementDTO> getAnnouncementList(@RequestParam(defaultValue = "admin") Mode mode,
                                                      @RequestParam(defaultValue = "0") int category) {
@@ -75,8 +75,16 @@ public class AnnouncementController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);
 
-        // Guest, admin, owner announcement can access
-        if (user == null || user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
+        // Guest
+        if (user == null) {
+            if (announcementService.getAnnouncementById(announcementId).getAnnouncementDisplay() == Display.Y) {
+                return modelMapper.map(announcementService.getAnnouncementById(announcementId), AnnouncementDetailDTO.class);
+            }
+            throw new AccessDeniedException("Access denied!!!");
+        }
+
+        // admin and announcer
+        if (user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
             return modelMapper.map(announcementService.getAnnouncementById(announcementId), AnnouncementDetailDTO.class);
         }
 

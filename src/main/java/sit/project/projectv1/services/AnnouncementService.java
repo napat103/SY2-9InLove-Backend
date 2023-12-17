@@ -207,7 +207,7 @@ public class AnnouncementService {
             sendMail(announcement);
             return true;
         } else {
-            announcementNotSendList.add(announcement);
+//            announcementNotSendList.add(announcement);
             return false;
         }
     }
