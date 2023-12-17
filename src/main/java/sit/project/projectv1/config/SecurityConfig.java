@@ -46,19 +46,20 @@ public class SecurityConfig {
 
 //                .requestMatchers("/api/**").permitAll()
 
-                .requestMatchers("/api/token", "/api/sendMail/**", "/api/subscriptions/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/announcements/**", "/api/announcements/{announcementId}", "/api/users/username/{username}").permitAll()
+                .requestMatchers("/api/token").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/announcements/**").permitAll()
 
+                .requestMatchers(HttpMethod.GET, "/api/announcements/update/{announcementId}").hasAnyRole("admin", "announcer")
                 .requestMatchers(HttpMethod.POST, "/api/announcements/**").hasAnyRole("admin", "announcer")
                 .requestMatchers(HttpMethod.PUT, "/api/announcements/**").hasAnyRole("admin", "announcer")
                 .requestMatchers(HttpMethod.DELETE, "/api/announcements/**").hasAnyRole("admin", "announcer")
                 .requestMatchers(HttpMethod.GET, "/api/users/username").hasAnyRole("admin", "announcer")
 
                 .requestMatchers("/api/users/**").hasRole("admin")
-                .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("admin")
-                .requestMatchers(HttpMethod.POST, "/api/users/**").hasRole("admin")
-                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("admin")
-                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("admin")
+//                .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("admin")
+//                .requestMatchers(HttpMethod.POST, "/api/users/**").hasRole("admin")
+//                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("admin")
+//                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("admin")
 
                 .anyRequest().authenticated()
                 .and().exceptionHandling().accessDeniedHandler(accessDeniedHandler).authenticationEntryPoint(entryPoint)

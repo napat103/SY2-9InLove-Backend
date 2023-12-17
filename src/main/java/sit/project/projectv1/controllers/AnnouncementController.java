@@ -5,6 +5,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -92,11 +93,25 @@ public class AnnouncementController {
     }
 
     @GetMapping("/update/{announcementId}")
+    @PreAuthorize("hasAnyRole('admin', 'announcer')")
     public OutputUpdateAnnouncementDTO getAnnouncementForUpdate(@PathVariable Integer announcementId) {
-        return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputUpdateAnnouncementDTO.class);
+        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserFromToken(authentication);
+
+        if (user == null) {
+            throw new AccessDeniedException("Access denied!!!");
+        }
+
+        if (user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
+            return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputUpdateAnnouncementDTO.class);
+        }
+        throw new AccessDeniedException("Access denied!!!");
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('admin', 'announcer')")
     public OutputAnnouncementDTO createAnnouncement(@Valid @RequestBody InputAnnouncementDTO announcementDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);
@@ -113,6 +128,7 @@ public class AnnouncementController {
     }
 
     @PutMapping("/{announcementId}")
+    @PreAuthorize("hasAnyRole('admin', 'announcer')")
     public OutputAnnouncementDTO updateAnnouncement(@PathVariable Integer announcementId, @Valid @RequestBody InputAnnouncementDTO announcementDTO) {
         Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
 
@@ -134,6 +150,7 @@ public class AnnouncementController {
     }
 
     @DeleteMapping("/{announcementId}")
+    @PreAuthorize("hasAnyRole('admin', 'announcer')")
     public void deleteAnnouncementById(@PathVariable Integer announcementId) {
         Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
 
