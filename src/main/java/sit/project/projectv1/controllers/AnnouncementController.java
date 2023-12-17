@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sit.project.projectv1.dtos.*;
-import sit.project.projectv1.enums.Display;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.enums.Role;
 import sit.project.projectv1.models.Announcement;
@@ -36,9 +35,6 @@ public class AnnouncementController {
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private SubscriptionService subscriptionService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -92,20 +88,6 @@ public class AnnouncementController {
         return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputUpdateAnnouncementDTO.class);
     }
 
-    @DeleteMapping("/{announcementId}")
-    public void deleteAnnouncementById(@PathVariable Integer announcementId) {
-        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserFromToken(authentication);
-
-        if (user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
-            announcementService.deleteAnnouncementById(announcementId);
-        } else {
-            throw new AccessDeniedException("Access denied!!!");
-        }
-    }
-
     @PostMapping
     public OutputAnnouncementDTO createAnnouncement(@Valid @RequestBody InputAnnouncementDTO announcementDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -117,9 +99,7 @@ public class AnnouncementController {
         announcement.setAnnouncementOwner(user);
 
         Announcement newAnnouncement = announcementService.createAnnouncement(announcement); // create and declare newAnnouncement
-        if (newAnnouncement.getAnnouncementDisplay() == Display.Y) {
-            subscriptionService.checkAnnouncementCategoryAndSendMail(newAnnouncement);
-        }
+        announcementService.checkNewAnnouncement(newAnnouncement);
 
         return modelMapper.map(announcement, OutputAnnouncementDTO.class);
     }
@@ -138,13 +118,25 @@ public class AnnouncementController {
             announcement.setAnnouncementOwner(storedAnnouncement.getAnnouncementOwner());
 
             Announcement newAnnouncement = announcementService.updateAnnouncement(announcementId, announcement); // update and declare newAnnouncement
-            if (newAnnouncement.getAnnouncementDisplay() == Display.Y) {
-                subscriptionService.checkAnnouncementCategoryAndSendMail(newAnnouncement);
-            }
+            announcementService.checkNewAnnouncement(newAnnouncement);
 
             return modelMapper.map(announcement, OutputAnnouncementDTO.class);
         }
         throw new AccessDeniedException("Access denied!!!");
+    }
+
+    @DeleteMapping("/{announcementId}")
+    public void deleteAnnouncementById(@PathVariable Integer announcementId) {
+        Announcement storedAnnouncement = announcementService.getAnnouncementById(announcementId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserFromToken(authentication);
+
+        if (user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
+            announcementService.deleteAnnouncementById(announcementId);
+        } else {
+            throw new AccessDeniedException("Access denied!!!");
+        }
     }
 
 }

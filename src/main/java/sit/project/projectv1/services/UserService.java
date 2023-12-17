@@ -41,9 +41,29 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public String getUserRole(User user) {
+        if (user == null) {
+            return "guest";
+        } else {
+            return user.getRole().toString();
+        }
+    }
+
+    public User getUserFromToken(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String username = userDetails.getUsername();
+            User user = userRepository.findByUsername(username);
+            return user;
+        }
+        // No token = guest
+        return null;
+    }
+
     public User createUser(User user) {
         String hashedPassword = argon2PasswordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
+
         User saveUser = userRepository.saveAndFlush(user);
         userRepository.refresh(saveUser);
         return saveUser;
@@ -56,20 +76,10 @@ public class UserService {
         storedUser.setName(user.getName());
         storedUser.setEmail(user.getEmail());
         storedUser.setRole(user.getRole());
+
         User saveUser = userRepository.saveAndFlush(storedUser);
         userRepository.refresh(saveUser);
         return saveUser;
-    }
-
-    public User getUserFromToken(Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String username = userDetails.getUsername();
-            User user = userRepository.findByUsername(username);
-            return user;
-        }
-        // No token = guest
-        return null;
     }
 
     public void deleteUser(Integer userId, User user) {

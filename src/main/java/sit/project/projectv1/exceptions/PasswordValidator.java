@@ -27,7 +27,8 @@ public class PasswordValidator implements ConstraintValidator<Password, String> 
         }
 
         if (regexpPattern.matcher(value).matches() == false) {
-            throw new ResponseStatusValidationException(HttpStatus.BAD_REQUEST, fieldName, "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters");
+            throw new ResponseStatusValidationException(HttpStatus.BAD_REQUEST, fieldName,
+                    "must be 8-14 characters long, at least 1 of uppercase, lowercase, number and special characters");
         }
 
         return true;

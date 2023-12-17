@@ -43,7 +43,7 @@ public class SubscriptionController {
         subscription.setId(null); // if not assign. ID will not generate
         subscription.setCategory(categoryService.getCategoryById(subscriptionDTO.getCategoryId()));
 
-        if (!subscriptionService.checkExistingEmailAndCategory(subscription)) {
+        if (!subscriptionService.existEmailAndCategory(subscription)) {
             return subscriptionService.createSubscription(subscription);
         }
         throw new ResponseStatusValidationException(HttpStatus.BAD_REQUEST, "Email and Category", "Cannot add same");
@@ -54,7 +54,7 @@ public class SubscriptionController {
         Subscription subscription = modelMapper.map(subscriptionDTO, Subscription.class);
         subscription.setCategory(categoryService.getCategoryById(subscriptionDTO.getCategoryId()));
 
-        if (!subscriptionService.checkExistingEmailAndCategory(subscription)) {
+        if (!subscriptionService.existEmailAndCategory(subscription)) {
             return subscriptionService.updateSubscription(subscriptionId, subscription);
         }
         throw new ResponseStatusValidationException(HttpStatus.BAD_REQUEST, "Email and Category", "Cannot update same");

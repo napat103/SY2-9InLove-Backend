@@ -5,11 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import sit.project.projectv1.enums.Display;
 import sit.project.projectv1.enums.Mode;
 import sit.project.projectv1.exceptions.ItemNotFoundException;
 import sit.project.projectv1.models.Announcement;
+import sit.project.projectv1.models.EmailDetails;
 import sit.project.projectv1.models.User;
 import sit.project.projectv1.repositories.AnnouncementRepository;
 
@@ -26,19 +28,22 @@ public class AnnouncementService {
     private AnnouncementRepository announcementRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
+    private EmailService emailService;
+
+    private List<Announcement> announcementNotSendList;
 
     public Announcement getAnnouncementById(Integer announcementId) {
         return announcementRepository.findById(announcementId).orElseThrow(
                 () -> new ItemNotFoundException("This announcement does not exist!!!"));
-    }
-
-    public void deleteAnnouncementById(Integer announcementId) {
-        if (announcementRepository.existsById(announcementId)) {
-            announcementRepository.deleteById(announcementId);
-        } else {
-            throw new ItemNotFoundException("This announcement does not exist!!!");
-        }
     }
 
     public Announcement createAnnouncement(Announcement announcement) {
@@ -57,15 +62,17 @@ public class AnnouncementService {
         return announcementRepository.saveAndFlush(ann);
     }
 
+    public void deleteAnnouncementById(Integer announcementId) {
+        if (announcementRepository.existsById(announcementId)) {
+            announcementRepository.deleteById(announcementId);
+        } else {
+            throw new ItemNotFoundException("This announcement does not exist!!!");
+        }
+    }
+
     public List<Announcement> getAnnouncementList(Mode mode, Integer categoryId, User user) {
         List<Announcement> announcementList;
-        String role;
-
-        if (user == null) {
-            role = "guest";
-        } else {
-            role = user.getRole().toString();
-        }
+        String role = userService.getUserRole(user);
 
         if (role.equals("admin")) { // FindAll, Filter category, mode
             announcementList = announcementRepository.findAll();
@@ -86,15 +93,9 @@ public class AnnouncementService {
 
     public Page<Announcement> getAnnouncementPage(int page, int size, Mode mode, Integer categoryId, User user) {
         List<Announcement> announcementList;
-        String role;
+        String role = userService.getUserRole(user);
         Sort sort = Sort.by("id").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-
-        if (user == null) {
-            role = "guest";
-        } else {
-            role = user.getRole().toString();
-        }
 
         if (role.equals("admin")) { // FindAll, Filter category, mode
             announcementList = announcementRepository.findAll();
@@ -123,13 +124,25 @@ public class AnnouncementService {
         }
 
         if (mode == Mode.active) {
-            announcementList = getActiveDate(announcementList);
-            announcementList.sort(byIdDescending);
-            return announcementList;
+            List<Announcement> announcementActiveList = new ArrayList<>();
+            for (int i = 0; i < announcementList.size(); i++) {
+                if (isAnnouncementActive(announcementList.get(i))) {
+                    announcementActiveList.add(announcementList.get(i));
+                }
+            }
+            announcementActiveList.sort(byIdDescending);
+            return announcementActiveList;
+
         } else if (mode == Mode.close) {
-            announcementList = getCloseDate(announcementList);
-            announcementList.sort(byIdDescending);
-            return announcementList;
+            List<Announcement> announcementCloseList = new ArrayList<>();
+            for (int i = 0; i < announcementList.size(); i++) {
+                if (isAnnouncementClose(announcementList.get(i))) {
+                    announcementCloseList.add(announcementList.get(i));
+                }
+            }
+            announcementCloseList.sort(byIdDescending);
+            return announcementCloseList;
+
         } else { // Mode = admin
             announcementList.sort(byIdDescending);
             return announcementList;
@@ -145,42 +158,72 @@ public class AnnouncementService {
         return new PageImpl<>(announcementList.subList(start, end), pageRequest, announcementList.size());
     }
 
-    public List<Announcement> getActiveDate(List<Announcement> announcementList) {
-        List<Announcement> announcementActiveList = new ArrayList<>();
+    public boolean isAnnouncementActive(Announcement announcement) {
         ZonedDateTime now = ZonedDateTime.now();
 
-        announcementList.forEach(announcement -> {
-            if (announcement.getPublishDate() == null && announcement.getCloseDate() == null) {
-                announcementActiveList.add(announcement);
-            } else if (announcement.getPublishDate() != null && announcement.getCloseDate() == null) {
-                if (now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) {
-                    announcementActiveList.add(announcement);
-                }
-            } else if (announcement.getPublishDate() != null && announcement.getCloseDate() != null) {
-                if ((now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) &&
-                        now.compareTo(announcement.getCloseDate()) < 0) {
-                    announcementActiveList.add(announcement);
-                }
-            } else if (announcement.getPublishDate() == null && announcement.getCloseDate() != null) {
-                if (now.compareTo(announcement.getCloseDate()) < 0) {
-                    announcementActiveList.add(announcement);
-                }
+        if (announcement.getPublishDate() == null && announcement.getCloseDate() == null) {
+            return true;
+        } else if (announcement.getPublishDate() != null && announcement.getCloseDate() == null) {
+            if (now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) {
+                return true;
             }
-        });
-        return announcementActiveList;
+        } else if (announcement.getPublishDate() != null && announcement.getCloseDate() != null) {
+            if ((now.compareTo(announcement.getPublishDate()) > 0 || now.compareTo(announcement.getPublishDate()) == 0) &&
+                    now.compareTo(announcement.getCloseDate()) < 0) {
+                return true;
+            }
+        } else if (announcement.getPublishDate() == null && announcement.getCloseDate() != null) {
+            if (now.compareTo(announcement.getCloseDate()) < 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public List<Announcement> getCloseDate(List<Announcement> announcementList) {
-        List<Announcement> announcementCloseList = new ArrayList<>();
+    public boolean isAnnouncementClose(Announcement announcement) {
         ZonedDateTime now = ZonedDateTime.now();
 
-        announcementList.forEach(announcement -> {
-            if (announcement.getCloseDate() != null) {
-                if ((now.compareTo(announcement.getCloseDate()) > 0 || now.compareTo(announcement.getCloseDate()) == 0)) {
-                    announcementCloseList.add(announcement);
-                }
+        if (announcement.getCloseDate() != null) {
+            if (now.compareTo(announcement.getCloseDate()) > 0 || now.compareTo(announcement.getCloseDate()) == 0) {
+                return true;
             }
-        });
-        return announcementCloseList;
+        }
+        return false;
     }
+
+    public void sendMail(Announcement announcement) {
+        List<String> allEmail = subscriptionService.getEmailByCategory(announcement.getAnnouncementCategory());
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setSubject(announcement.getAnnouncementTitle());
+        emailDetails.setMsgBody(announcement.getAnnouncementDescription());
+        for (int i = 0; i < allEmail.size(); i++) {
+            emailDetails.setRecipient(allEmail.get(i));
+            emailService.sendSimpleMail(emailDetails);
+        }
+    }
+
+    public boolean checkNewAnnouncement(Announcement announcement) {
+        if (announcement.getAnnouncementDisplay() == Display.Y && isAnnouncementActive(announcement)) {
+            sendMail(announcement);
+            return true;
+        } else {
+            announcementNotSendList.add(announcement);
+            return false;
+        }
+    }
+
+//    @Scheduled(cron = "0 * * * *")
+//    public boolean checkAnnouncementNotSend() {
+//        for (int i = 0; i < announcementNotSendList.size(); i++) {
+//            Announcement announcementToCheck = announcementNotSendList.get(i);
+//            if (announcementToCheck.getAnnouncementDisplay() == Display.Y && isAnnouncementActive(announcementToCheck)) {
+//                sendMail(announcementToCheck);
+//                announcementNotSendList.stream()
+//                        .filter(ann -> ann.getId() != announcementToCheck.getId())
+//                        .collect(Collectors.toList());
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 }
