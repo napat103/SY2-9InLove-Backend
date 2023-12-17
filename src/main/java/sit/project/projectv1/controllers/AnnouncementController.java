@@ -100,10 +100,6 @@ public class AnnouncementController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserFromToken(authentication);
 
-        if (user == null) {
-            throw new AccessDeniedException("Access denied!!!");
-        }
-
         if (user.getRole() == Role.admin || user.getUsername().equals(storedAnnouncement.getAnnouncementOwner().getUsername())) {
             return modelMapper.map(announcementService.getAnnouncementById(announcementId), OutputUpdateAnnouncementDTO.class);
         }
